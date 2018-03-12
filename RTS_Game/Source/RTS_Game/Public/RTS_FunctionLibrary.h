@@ -15,9 +15,32 @@ class URTS_FunctionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable)
+	static void PrintMessage(
+		FString Message,
+		FColor Color = FColor::Yellow,
+		float TimeToDisplay = 15.0f);
+
+	// Widgets
+	UFUNCTION(BlueprintPure)
+	static class URTS_HUDWidget* GetHUDWidgetRef(const class UUserWidget* widget);
+	UFUNCTION(BlueprintPure)
+	static class URTS_InventoryWidget* GetInventoryWidgetRef(const class UUserWidget* widget);
+
+	static UClass* GetClassPtrOf_CommonSlotWidget_BP();
+	static UClass* GetClassPtrOf_ActionSlotWidget_BP();
+
+	static UClass* GetClassPtrOf_InventoryWidget_BP();
+	static UClass* GetClassPtrOf_HUD_BP();
+
+	static UClass* GetClassPtrOf_DraggedItem_BP();
+
 	// DataAsset Items
 	UFUNCTION(BlueprintPure)
 	static class UItems* GetDataAsset_Items();
+	UFUNCTION(BlueprintPure)
+	static TArray<FItem>& GetItemsInfo();
+
 	UFUNCTION(BlueprintCallable)
 	static ETypeOfItem GetTypeOfItem(const int32 ItemId);
 

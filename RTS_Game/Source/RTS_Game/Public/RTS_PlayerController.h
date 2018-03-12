@@ -31,16 +31,15 @@ public:
 
 	void SetInputMode_GameAndUI();
 	void SetInputMode_GameOnly();
-	
+	void SetInputMode_UI_Only();
+
+	// Get properties
+	class URTS_HUDWidget * GetHUDWidget() const;
+	class URTS_InventoryWidget * GetInventoryWidget() const;
 
 protected:
 	void CreateUI_Widgets();
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	class URTS_HUDWidget *HUD_Widget;
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing = RefreshInventoryWidget)
-	FInventory Inventory;
+	
 	UFUNCTION()
 	void RefreshInventoryWidget();
 	UFUNCTION()
@@ -68,12 +67,27 @@ protected:
 	// Camera turning
 	void MouseX(float AxisValue);
 	void MouseY(float AxisValue);
+	// Inventory Key('I')
+	void InventoryKeyPressed();
 
 public:
+	UPROPERTY()
+	class UDragDropOperation* DragDropOp_property;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	class URTS_HUDWidget *HUD_Widget;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	class URTS_InventoryWidget *Inventory_Widget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing = RefreshInventoryWidget)
+	FInventory Inventory;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraReference")
 	class ACameraWithSpringArm *CameraWithSpringArm;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "CharacterReference")
 	class ARTS_Character *CharacterReference;
+
+
 
 	float mousePosX;
 	float mousePosY;

@@ -26,13 +26,12 @@ enum class ETypeOfWeapon : uint8
 
 };
 UENUM(BlueprintType)
-enum class ETypeOfInventorySlot : uint8
+enum class ETypeOfActionSlot : uint8
 {
 	None,
-	NotFromInventory,
-	CommonSlot,
-	WeaponSlot,
 	ArmorSlot,
+	FirstWeaponSlot,
+	SecondWeaponSlot,
 	FirstAddSlot,
 	SecondAddSlot
 };

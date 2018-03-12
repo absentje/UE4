@@ -5,10 +5,91 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Blueprint/UserWidget.h"
+#include "Engine/Engine.h"
 
-#include <thread>
-#include <chrono>
+#include "RTS_PlayerController.h"
+#include "UI/Inventory/ActionSlotWidget.h"
+#include "UI/Inventory/CommonSlotWidget.h"
+#include "UI/Inventory/RTS_InventoryWidget.h"
+#include "UI/Inventory/DraggedItem.h"
+#include "UI/RTS_HUDWidget.h"
 
+
+void URTS_FunctionLibrary::PrintMessage(FString Message, FColor Color, float TimeToDisplay)
+{
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, TimeToDisplay, Color, Message);
+	}
+}
+
+
+// Widgets
+
+class URTS_HUDWidget* URTS_FunctionLibrary::GetHUDWidgetRef(const class UUserWidget* widget)
+{
+	auto PlayerController = Cast<ARTS_PlayerController>(widget->GetOwningPlayer());
+	if (PlayerController)
+		return PlayerController->GetHUDWidget();
+	else
+		return nullptr;
+}
+
+class URTS_InventoryWidget* URTS_FunctionLibrary::GetInventoryWidgetRef(const class UUserWidget* widget)
+{
+	auto PlayerController = Cast<ARTS_PlayerController>(widget->GetOwningPlayer());
+	if (PlayerController)
+		return PlayerController->GetInventoryWidget();
+	else
+		return nullptr;
+}
+
+UClass * URTS_FunctionLibrary::GetClassPtrOf_CommonSlotWidget_BP()
+{
+	static auto Class_ptr = [] {
+		FString PathName("/Game/Blueprints/UI/Inventory/CommonSlotWidget_BP");
+		return ConstructorHelpersInternal::FindOrLoadClass(PathName, UCommonSlotWidget::StaticClass());
+	}();
+	return Class_ptr;
+}
+
+UClass * URTS_FunctionLibrary::GetClassPtrOf_ActionSlotWidget_BP()
+{
+	static auto Class_ptr = [] {
+		FString PathName("/Game/Blueprints/UI/Inventory/ActionSlotWidget_BP");
+		return ConstructorHelpersInternal::FindOrLoadClass(PathName, UActionSlotWidget::StaticClass());
+	}();
+	return Class_ptr;
+}
+
+UClass * URTS_FunctionLibrary::GetClassPtrOf_InventoryWidget_BP()
+{
+	static auto Class_ptr = [] {
+		FString PathName("/Game/Blueprints/UI/Inventory/InventoryWidget_BP");
+		return ConstructorHelpersInternal::FindOrLoadClass(PathName, URTS_InventoryWidget::StaticClass());
+	}();
+	return Class_ptr;
+}
+
+UClass * URTS_FunctionLibrary::GetClassPtrOf_HUD_BP()
+{
+	static auto Class_ptr = [] {
+		FString PathName("/Game/Blueprints/UI/HUD_BP");
+		return ConstructorHelpersInternal::FindOrLoadClass(PathName, URTS_HUDWidget::StaticClass());
+	}();
+	return Class_ptr;
+}
+
+UClass * URTS_FunctionLibrary::GetClassPtrOf_DraggedItem_BP()
+{
+	static auto Class_ptr = [] {
+		FString PathName("/Game/Blueprints/UI/Inventory/DraggedItem_BP");
+		return ConstructorHelpersInternal::FindOrLoadClass(PathName, UDraggedItem::StaticClass());
+	}();
+	return Class_ptr;
+}
+
+///////////////////////////////////////////////////////////////////////////
 // FOR FInventorySlot
 int32 URTS_FunctionLibrary::GetCount(const FInventorySlot &Slot)
 {
@@ -30,7 +111,7 @@ void URTS_FunctionLibrary::SetItemId(UPARAM(ref) FInventorySlot & Slot, int32 Id
 	Slot.ItemId = Id;
 }
 
-
+///////////////////////////////////////////////////////////////////////////
 // FOR FInventory
 FInventorySlot URTS_FunctionLibrary::GetArmorSlot(const FInventory & Inventory)
 {
@@ -97,26 +178,26 @@ void URTS_FunctionLibrary::SetArraySlot(UPARAM(ref)FInventory & Inventory, const
 	Inventory.InventoryContents[Id] = Slot;
 }
 
-
+///////////////////////////////////////////////////////////////////////////
 // FOR DataAsset Items
 
 UItems* URTS_FunctionLibrary::GetDataAsset_Items()
 {
-	static ConstructorHelpers::FObjectFinder<UItems> StaticDataAsset_Items(TEXT("Items'/Game/Blueprints/Assets/Items.Items'"));
-	if (StaticDataAsset_Items.Succeeded()) {
-		return StaticDataAsset_Items.Object;
-	}
-	else {
-		return NULL;
-	}
+	static auto object_ptr = [] {
+		FString PathName("/Game/Blueprints/Assets/Items");
+		return ConstructorHelpersInternal::FindOrLoadObject<UItems>(PathName);
+	}();
+	return object_ptr;
+}
+
+TArray<FItem>& URTS_FunctionLibrary::GetItemsInfo() {
+	return GetDataAsset_Items()->ArrayOfItems;
 }
 
 ETypeOfItem URTS_FunctionLibrary::GetTypeOfItem(const int32 ItemId)
 {
-	try {
-		return GetDataAsset_Items()->ArrayOfItems[ItemId].TypeOfItem;
-	}
-	catch (...) {
+	auto& mass = GetItemsInfo();
+	if ((int)mass.GetAllocatedSize() <= ItemId || ItemId < 0)
 		return ETypeOfItem::None;
-	}
+	return mass[ItemId].TypeOfItem;
 }

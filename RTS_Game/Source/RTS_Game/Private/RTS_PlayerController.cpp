@@ -2,9 +2,11 @@
 //include project files
 #include "RTS_PlayerController.h"
 #include "RTS_HUDWidget.h"
+#include "RTS_InventoryWidget.h"
 #include "PickUpActor.h"
 #include "RTS_Character.h"
 #include "CameraWithSpringArm.h"
+#include "RTS_FunctionLibrary.h"
 
 //include UE4 files
 #include "AI/Navigation/NavigationSystem.h"
@@ -27,9 +29,7 @@ ARTS_PlayerController::ARTS_PlayerController()
 	PrimaryActorTick.bStartWithTickEnabled = true;	// Если значение true, эта функция будет активирована,
 													// но позже ее можно будет отключить.
 	bAllowTickBeforeBeginPlay = false;
-	if (IsLocalController()) {
-		CreateUI_Widgets();
-	}
+	
 }
 
 void ARTS_PlayerController::BeginPlay()
@@ -47,6 +47,7 @@ void ARTS_PlayerController::BeginPlay()
 			CameraWithSpringArm->SetController(this);
 			SetViewTarget(CameraWithSpringArm);
 		}
+		CreateUI_Widgets();
 	}
 }
 void ARTS_PlayerController::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -127,6 +128,7 @@ void ARTS_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("SetDestination", IE_Pressed, this, &ARTS_PlayerController::MoveToMouseCursor);
 	InputComponent->BindAction("ZoomKey", IE_Pressed, this, &ARTS_PlayerController::ZoomKeyPressed);
 	InputComponent->BindAction("ZoomKey", IE_Released, this, &ARTS_PlayerController::ZoomKeyReleased);
+	InputComponent->BindAction("Inventory", IE_Pressed, this, &ARTS_PlayerController::InventoryKeyPressed);
 	InputComponent->BindAction("MouseWheelUp", IE_Pressed, this, &ARTS_PlayerController::MouseWheelPressed);
 	InputComponent->BindAction("MouseWheelDown", IE_Pressed, this, &ARTS_PlayerController::MouseWheelReleased);
 	InputComponent->BindAxis("MouseX", this, &ARTS_PlayerController::MouseX);
@@ -220,31 +222,77 @@ void ARTS_PlayerController::MouseY(float AxisValue)
 	}
 }
 
+void ARTS_PlayerController::InventoryKeyPressed() {
+	if (Inventory_Widget) {
+		ESlateVisibility NewVisibility;
+		if (Inventory_Widget->GetVisibility() == ESlateVisibility::Hidden) {
+			NewVisibility = ESlateVisibility::SelfHitTestInvisible;
+		}
+		else {
+			NewVisibility = ESlateVisibility::Hidden;
+		}
+		Inventory_Widget->SetVisibility(NewVisibility);
+	}
+}
+
+
 void ARTS_PlayerController::SetInputMode_GameAndUI()
 {
-
-	FInputModeGameAndUI InputMode;
-	{
-		// Set parameters of InputMode
-		InputMode.SetWidgetToFocus(NULL);
-		InputMode.SetLockMouseToViewport(false);
-		InputMode.SetHideCursorDuringCapture(false);
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	}
+	static const FInputModeGameAndUI InputMode = 
+		[] {
+			FInputModeGameAndUI InputMode;
+			// Set parameters of InputMode
+			InputMode.SetWidgetToFocus(NULL);
+			InputMode.SetHideCursorDuringCapture(false);
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			return InputMode;
+		}();
 	SetInputMode(InputMode);
 }
+
 void ARTS_PlayerController::SetInputMode_GameOnly()
 {
 	FInputModeGameOnly InputMode;
 	SetInputMode(InputMode);
 }
 
+void ARTS_PlayerController::SetInputMode_UI_Only() {
+	static const FInputModeUIOnly InputMode = [] {
+		FInputModeUIOnly Mode;
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+		return Mode;
+	}();
+	SetInputMode(InputMode);
+}
+
+
 void ARTS_PlayerController::CreateUI_Widgets()
 {
-	HUD_Widget = CreateWidget<URTS_HUDWidget>(this, URTS_HUDWidget::StaticClass());
-	// need to define
-	//	*
-	//
+	// HUD
+	{
+		auto Class_ptr = URTS_FunctionLibrary::GetClassPtrOf_HUD_BP();
+		if (Class_ptr) {
+			HUD_Widget = CreateWidget<URTS_HUDWidget>(this, Class_ptr);
+			if (HUD_Widget) {
+				HUD_Widget->AddToViewport();
+				HUD_Widget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			}
+		}
+	}
+	// Inventory
+	{
+		auto Class_ptr = URTS_FunctionLibrary::GetClassPtrOf_InventoryWidget_BP();
+		if (Class_ptr) {
+			Inventory_Widget = CreateWidget<URTS_InventoryWidget>(this, Class_ptr);
+			if (Inventory_Widget) {
+				Inventory_Widget->AddToViewport();
+				const FVector2D InventoryPositionInViewPort(0, 200);
+				Inventory_Widget->SetPositionInViewport(InventoryPositionInViewPort, false);
+				Inventory_Widget->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+	}
+	SetInputMode_GameAndUI();
 }
 
 
@@ -286,4 +334,15 @@ void ARTS_PlayerController::RefreshInventoryWidget()
 	// need to define
 	//	*
 	//
+}
+
+
+
+
+class URTS_HUDWidget * ARTS_PlayerController::GetHUDWidget() const {
+	return HUD_Widget;
+}
+
+class URTS_InventoryWidget * ARTS_PlayerController::GetInventoryWidget() const {
+	return Inventory_Widget;
 }

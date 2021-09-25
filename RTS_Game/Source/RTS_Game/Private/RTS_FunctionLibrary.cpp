@@ -185,7 +185,7 @@ UItems* URTS_FunctionLibrary::GetDataAsset_Items()
 {
 	static auto object_ptr = [] {
 		FString PathName("/Game/Blueprints/Assets/Items");
-		return ConstructorHelpersInternal::FindOrLoadObject<UItems>(PathName);
+		return ConstructorHelpersInternal::FindOrLoadObject<UItems>(PathName, ELoadFlags::LOAD_None);
 	}();
 	return object_ptr;
 }

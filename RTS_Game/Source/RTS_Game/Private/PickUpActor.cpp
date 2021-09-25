@@ -16,7 +16,7 @@ APickUpActor::APickUpActor()
 {
 	RootComponent->SetMobility(EComponentMobility::Movable);
 	SetMeshSettingsDefault();
-	if (Role < ROLE_Authority) {
+	if ( GetLocalRole() < ROLE_Authority ) {
 		OnActorBeginOverlap.AddDynamic(this, &APickUpActor::BeginOverlap);
 		OnActorEndOverlap.AddDynamic(this, &APickUpActor::EndOverlap);
 	}
@@ -35,7 +35,7 @@ void APickUpActor::SetMeshSettingsDefault()
 	if (MeshComp) {
 		MeshComp->SetCastShadow(false);
 		MeshComp->SetSimulatePhysics(true);
-		MeshComp->bGenerateOverlapEvents = true;
+		MeshComp->SetGenerateOverlapEvents( true );
 
 		MeshComp->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
 		MeshComp->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
@@ -53,7 +53,7 @@ FInventorySlot APickUpActor::GetInventorySlot() const
 }
 void APickUpActor::SetInventorySlot(const FInventorySlot InvSlot_)
 {
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		InvSlot = InvSlot_;
 	}

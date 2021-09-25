@@ -9,7 +9,7 @@ public class RTS_Game : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore",
-            "UMG", "HeadMountedDisplay", "UMGEditor" });
+            "UMG", "HeadMountedDisplay", "UMGEditor", "AIModule","NavigationSystem" });
 
         PrivateDependencyModuleNames.AddRange(new string[] {  });
 

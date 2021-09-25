@@ -20,9 +20,9 @@ ACameraWithSpringArm::ACameraWithSpringArm()
 
  	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->bAbsoluteRotation = true;	// Вращение будет относительно мира, а не родителя
+	CameraBoom->SetUsingAbsoluteRotation( true ); // Вращение будет относительно мира, а не родителя
 	CameraBoom->TargetArmLength = 800.f;	// Длина "рычага"
-	CameraBoom->RelativeRotation = FRotator(-60.f, 0.f, 0.f); // Вращение компонента относительно родительского элемента
+	CameraBoom->GetRelativeRotation_DirectMutable() = FRotator( -60.f, 0.f, 0.f ); // Вращение компонента относительно родительского элемента
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 		// Create a camera...
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));

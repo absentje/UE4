@@ -9,7 +9,7 @@
 #include "RTS_FunctionLibrary.h"
 
 //include UE4 files
-#include "AI/Navigation/NavigationSystem.h"
+#include "Public/NavigationSystem.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -153,7 +153,7 @@ void ARTS_PlayerController::SetNewMoveDestination(const FVector DestLocation)
 	APawn* const MyPawn = GetPawn();
 	if (MyPawn)
 	{
-		UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
+		auto NavSys = Cast<UNavigationSystemV1>( MyPawn->GetWorld()->GetNavigationSystem() );
 		float const Distance = FVector::Dist(DestLocation, MyPawn->GetActorLocation());
 		if (NavSys && (Distance > 120.0f))
 		{
@@ -161,7 +161,7 @@ void ARTS_PlayerController::SetNewMoveDestination(const FVector DestLocation)
 		}
 		
 	}
-	if (Role < ROLE_Authority)
+	if (GetLocalRole() < ROLE_Authority)
 	{
 		ServerSetNewMoveDestination(DestLocation);
 	}
@@ -177,7 +177,7 @@ void ARTS_PlayerController::ServerSetNewMoveDestination_Implementation(const FVe
 	APawn* const MyPawn = GetPawn();
 	if (MyPawn)
 	{
-		UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
+		auto NavSys = Cast<UNavigationSystemV1>( MyPawn->GetWorld()->GetNavigationSystem() );
 		float const Distance = FVector::Dist(DestLocation, MyPawn->GetActorLocation());
 		if (NavSys && (Distance > 120.0f))
 		{
